@@ -46,12 +46,17 @@
             if (bestMove && gameInProgress) {
                 game.move(bestMove, {sloppy: true});
                 board.position(game.fen());
+                const moveTime = blitzMode ? 250 : 500;
                 if (game.in_checkmate()) {
-                    alert('Game over: Checkmate!');
-                    stopGame();
+                    setTimeout(() => {
+                        alert('Game over: Checkmate!');
+                        stopGame();
+                    }, moveTime);
                 } else if (game.in_draw()) {
-                    alert('Game over: Draw!');
-                    stopGame();
+                    setTimeout(() => {
+                        alert('Game over: Checkmate!');
+                        stopGame();
+                    }, moveTime);
                 } else {
                     botMove();
                 }
