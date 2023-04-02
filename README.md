@@ -44,4 +44,4 @@ You'll need a modern web browser to run the game.
 
 ## Acknowledgments
 
-- OpenAI's GPT-4 for assistance in improving the bot's algorithm
+- OpenAI's GPT-4 for assistance in improving UI and gicing directions regarding correct usage of chess lib related apis.
