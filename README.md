@@ -1,7 +1,4 @@
 # bot-vs-bot
-Very simple web-based bot vs. bot chess game. Currently via the Stockfish engine. 
-
-# Chess Bot Game
 
 A simple web-based chess game where a bot plays against another bot. The chess bot uses the Stockfish engine to generate moves, and the game board is created using the Chessboard.js library. The game also features a Blitz Mode for a faster gameplay experience.
 
