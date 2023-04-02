@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Bot Game</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="board" style="width: 400px"></div>
+        <button id="startGame">Start New Game</button>
+        <button id="stopGame" disabled>Stop Game</button>
+        <button id="resumeGame" disabled>Resume Game</button>
+        <label>
+            <input type="checkbox" id="blitzMode" checked> Blitz Mode
+        </label>
+        <footer>
+            Last updated: Apr 1st, 2023<br>
+            Developed by Kostas Kryptos Chalkias and AI agents
+        </footer>
+    </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="stockfish.js"></script>
+    
+    <script>
+        // Initialize the chess board and game objects
+        const board = Chessboard('board', {
+            draggable: false,
+            position: 'start'
+        });
+        const game = new Chess();
+        const engine = new Worker('stockfish.js');
+        let engineReady = false;
+        
+        let gameInProgress = false;
+        let lastMoveTime = Date.now();
+
+        // Handle messages from the Stockfish engine
+        engine.onmessage = function (event) {
+            const bestMove = event.data.split(' ')[1];
+            if (bestMove && gameInProgress) {
+                game.move(bestMove, {sloppy: true});
+                board.position(game.fen());
+                if (game.in_checkmate()) {
+                    alert('Game over: Checkmate!');
+                    stopGame();
+                } else if (game.in_draw()) {
+                    alert('Game over: Draw!');
+                    stopGame();
+                } else {
+                    botMove();
+                }
+            }
+        };
+
+        // Initialize the Stockfish engine
+        function initEngine() {
+          engine.postMessage('uci');
+          engine.postMessage('ucinewgame');
+          engineReady = true;
+        }
+
+        // Make the Stockfish bot play its move
+        function botMove() {
+            if (!gameInProgress) return;
+            const blitzMode = document.getElementById('blitzMode').checked;            
+            const moveTime = blitzMode ? 250 : 500;
+            // const depth = blitzMode ? 1 : 2; 
+            const currentTime = Date.now();
+            const timeSinceLastMove = currentTime - lastMoveTime;
+            if (timeSinceLastMove >= moveTime) {
+                engine.postMessage('position fen ' + game.fen());
+                engine.postMessage('go movetime ' + moveTime);
+                lastMoveTime = currentTime;
+            }
+            setTimeout(() => botMove(), 125);
+        }
+
+        // Start a new game
+        function startGame() {
+            game.reset();
+            board.start();
+            gameInProgress = true;
+            document.getElementById('startGame').disabled = true;
+            document.getElementById('stopGame').disabled = false;
+            botMove();
+        }
+
+        // Stop the current game
+        function stopGame() {
+          gameInProgress = false;
+          document.getElementById('startGame').disabled = false;
+          document.getElementById('stopGame').disabled = true;
+          document.getElementById('resumeGame').disabled = false;
+        }
+        
+        // Resume a stopped game
+        function resumeGame() {
+            if (!game.game_over()) {
+                gameInProgress = true;
+                document.getElementById('startGame').disabled = true;
+                document.getElementById('stopGame').disabled = false;
+                document.getElementById('resumeGame').disabled = true;
+                botMove();
+            }
+        }
+
+        // Add event listeners for buttons
+        document.getElementById('startGame').addEventListener('click', startGame);
+        document.getElementById('stopGame').addEventListener('click', stopGame);
+        document.getElementById('resumeGame').addEventListener('click', resumeGame);
+    </script>
+    </body>
+</html>
